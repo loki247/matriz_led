@@ -6,6 +6,7 @@ LedControl lc=LedControl(7,5,6,1); // Los numeros se refieren a que pin de ARDUI
 
 byte A[] = {B00011000, B00100100, B01000010, B01000010, B01000010, B01111110, B01000010, B01000010};
 byte B[] = {B01111000, B01000100, B01000100, B01111000, B01000100, B01000100, B01000100, B01111000};
+byte C[] = {B00011000, B00100100, B01000000, B01000000, B01000000, B01000000, B00100100, B00011000};
 
 void setup(){
   // El numero que colocamos como argumento de la funcion se refiere a la direccion del decodificador
@@ -21,6 +22,9 @@ void loop(){
   trans();
   delay(500);
   representar(B,5000);
+  trans();
+  delay(500);
+  representar(C,5000);
   trans();
   delay(500);
   lc.clearDisplay(0);
