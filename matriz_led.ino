@@ -15,19 +15,34 @@ void setup(){
 void loop(){
   //trans();
   //delay(500);
-  representar(A,5000);
-  trans();
-  delay(500);
-  representar(B,5000);
-  trans();
-  delay(500);
-  representar(C,5000);
-  trans();
-  delay(500);
-  representar(D,5000);
-  trans();
-  delay(500);
-
+  representar(A,1000);
+  representar(B,1000);
+  representar(C,1000);
+  representar(D,1000);
+  representar(E,1000);
+  representar(F,1000);
+  representar(G,1000);
+  representar(H,1000);
+  representar(I,1000);
+  representar(J,1000);
+  representar(K,1000);
+  representar(L,1000);
+  representar(M,1000);
+  representar(N,1000);
+  representar(NN,1000);
+  representar(O,1000);
+  representar(P,1000);
+  representar(Q,1000);
+  representar(R,1000);
+  representar(S,1000);
+  representar(T,1000);
+  representar(U,1000);
+  representar(V,1000);
+  representar(W,1000);
+  representar(X,1000);
+  representar(Y,1000);
+  representar(Z,1000);
+  
   lc.clearDisplay(0);
 }
 
