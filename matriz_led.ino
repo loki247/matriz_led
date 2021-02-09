@@ -1,12 +1,9 @@
 #include "LedControlMS.h" 
+#include "letras.h" 
 
 LedControl lc=LedControl(7,5,6,1); // Los numeros se refieren a que pin de ARDUINO tienes en cada uno de los terminales
 
-/* 12 para el DIN, 11 para el CLK, 10 para el CS y el 1 se refiere a la asignacion de la matriz*/ 
-
-byte A[] = {B00011000, B00100100, B01000010, B01000010, B01000010, B01111110, B01000010, B01000010};
-byte B[] = {B01111000, B01000100, B01000100, B01111000, B01000100, B01000100, B01000100, B01111000};
-byte C[] = {B00011000, B00100100, B01000000, B01000000, B01000000, B01000000, B00100100, B00011000};
+/* 7 para el DIN, 5 para el CLK, 6 para el CS y el 1 se refiere a la asignacion de la matriz*/ 
 
 void setup(){
   // El numero que colocamos como argumento de la funcion se refiere a la direccion del decodificador
@@ -27,6 +24,10 @@ void loop(){
   representar(C,5000);
   trans();
   delay(500);
+  representar(D,5000);
+  trans();
+  delay(500);
+
   lc.clearDisplay(0);
 }
 
