@@ -1,21 +1,39 @@
 #include "LedControlMS.h" 
 #include "letras.h" 
+#include <OneWire.h>                
+#include <DallasTemperature.h>
 
 LedControl lc=LedControl(7,5,6,1); // Los numeros se refieren a que pin de ARDUINO tienes en cada uno de los terminales
-
 /* 7 para el DIN, 5 para el CLK, 6 para el CS y el 1 se refiere a la asignacion de la matriz*/ 
+
+OneWire ourWire(2);                //Se establece el pin 2  como bus OneWire
+DallasTemperature sensors(&ourWire); //Se declara una variable u objeto para nuestro sensor
 
 void setup(){
   // El numero que colocamos como argumento de la funcion se refiere a la direccion del decodificador
   lc.shutdown(0,false);
   lc.setIntensity(0,8);// La valores estan entre 1 y 15 
   lc.clearDisplay(0);
+
+  delay(1000);
+  Serial.begin(9600);
+  sensors.begin();   //Se inicia el sensor
 }
 
 void loop(){
+  sensors.requestTemperatures();   //Se envía el comando para leer la temperatura
+  float temp= sensors.getTempCByIndex(0); //Se obtiene la temperatura en ºC
+  
+  Serial.print("Temperatura= ");
+  Serial.print(temp);
+  Serial.println(" C");
+  delay(100);
+
+  char t[6];
+  
   //trans();
   //delay(500);
-  representar(A,1000);
+  /*representar(A,1000);
   representar(B,1000);
   representar(C,1000);
   representar(D,1000);
@@ -41,9 +59,8 @@ void loop(){
   representar(W,1000);
   representar(X,1000);
   representar(Y,1000);
-  representar(Z,1000);
-  
-  lc.clearDisplay(0);
+  representar(Z,1000);*/
+  lc.writeString(0, dtostrf(temp, 5, 1, t));
 }
 
 // Funcion para representar una transicion animada
