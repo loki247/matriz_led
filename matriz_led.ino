@@ -1,26 +1,38 @@
-#include "LedControlMS.h" 
-#include "letras.h" 
+//Ejemplo para enviar mensajes deslizantes en módulos de matrices LEDs con Arduino basado en MAX7219
+#include <MD_MAX72xx.h>
 #include <OneWire.h>                
 #include <DallasTemperature.h>
 
-LedControl lc=LedControl(7,5,6,1); // Los numeros se refieren a que pin de ARDUINO tienes en cada uno de los terminales
-/* 7 para el DIN, 5 para el CLK, 6 para el CS y el 1 se refiere a la asignacion de la matriz*/ 
+#define HARDWARE_TYPE MD_MAX72XX::DR0CR0RR1_HW
+#define NUM_OF_MATRIX 3
+#define CLK_PIN   5
+#define DATA_PIN  7
+#define CS_PIN    6
 
 OneWire ourWire(2);                //Se establece el pin 2  como bus OneWire
 DallasTemperature sensors(&ourWire); //Se declara una variable u objeto para nuestro sensor
+MD_MAX72XX cartel = MD_MAX72XX(HARDWARE_TYPE, DATA_PIN, CLK_PIN, CS_PIN, NUM_OF_MATRIX);
 
-void setup(){
-  // El numero que colocamos como argumento de la funcion se refiere a la direccion del decodificador
-  lc.shutdown(0,false);
-  lc.setIntensity(0,8);// La valores estan entre 1 y 15 
-  lc.clearDisplay(0);
+String mensaje = "";
+String proximo_mensaje;
 
+void setup() {
+  // inicializar el objeto mx
+  cartel.begin();
+
+  // Establecer intencidad a un valor de 5
+  cartel.control(MD_MAX72XX::INTENSITY, 10);
+
+  // Desactivar auto-actualizacion
+  cartel.control( MD_MAX72XX::UPDATE, false );
+
+  // inicializar puerto Serie a 9600 baudios
   delay(1000);
   Serial.begin(9600);
   sensors.begin();   //Se inicia el sensor
 }
 
-void loop(){
+void loop() {
   sensors.requestTemperatures();   //Se envía el comando para leer la temperatura
   float temp= sensors.getTempCByIndex(0); //Se obtiene la temperatura en ºC
   
@@ -29,63 +41,89 @@ void loop(){
   Serial.println(" C");
   delay(100);
 
-  char t[6];
+  float floatVal= temp ;    // need to add non-zero digit at end to get right string-- strange!
+  String stringVal = "";     
   
-  //trans();
-  //delay(500);
-  /*representar(A,1000);
-  representar(B,1000);
-  representar(C,1000);
-  representar(D,1000);
-  representar(E,1000);
-  representar(F,1000);
-  representar(G,1000);
-  representar(H,1000);
-  representar(I,1000);
-  representar(J,1000);
-  representar(K,1000);
-  representar(L,1000);
-  representar(M,1000);
-  representar(N,1000);
-  representar(NN,1000);
-  representar(O,1000);
-  representar(P,1000);
-  representar(Q,1000);
-  representar(R,1000);
-  representar(S,1000);
-  representar(T,1000);
-  representar(U,1000);
-  representar(V,1000);
-  representar(W,1000);
-  representar(X,1000);
-  representar(Y,1000);
-  representar(Z,1000);*/
-  lc.writeString(0, dtostrf(temp, 5, 1, t));
+  stringVal += String(int(temp)) + "." + String(getDecimal(temp)); //combining both whole and decimal part in string with a full                                                                      //stop between them
+  
+  char charVal[stringVal.length() + 1];                      //initialise character array to store the values
+  stringVal.toCharArray(charVal , stringVal.length() + 1);     //passing the value of the string to the character array
+  
+  /*
+  for(uint8_t i=0; i<sizeof(charVal);i++){
+    Serial.print(charVal[i]); //display character array
+  }
+  */
+
+  mensaje = stringVal + " C";
+  
+  slide_text(30);
+  actualizar_mensaje();
 }
 
-// Funcion para representar una transicion animada
-void trans(){ //Funcion de transicion para llenar y vaciar la pantalla de puntos
-  for (int row=0; row<8; row++){
-    for (int col=0; col<8; col++){
-      lc.setLed(0,col,row,true); // 
-      delay(25);
-    }
+long getDecimal(float val){
+  int intPart = int(val);
+  long decPart = 10 *(val-intPart); //I am multiplying by 1000 assuming that the foat values will have a maximum of 3 decimal places
+                                   //Change to match the number of decimal places you need
+  if(decPart>0){
+    return(decPart);           //return the decimal part of float number if it is available 
+  }else if(decPart<0){
+    return((-1)*decPart); //if negative, multiply by -1
+  }else if(decPart=0){
+    return(00);           //return 0 if decimal part of float number is not available
   }
-  
-  for (int row=0; row<8; row++){
-    for (int col=0; col<8; col++){
-      lc.setLed(0,col,row,false); // 
-      delay(25);
+}
+
+void actualizar_mensaje(){
+  while( Serial.available() ){
+    char c = Serial.read();
+
+    if( c == '\n' ){
+      mensaje = proximo_mensaje;
+      proximo_mensaje = "";
+      break;
+    }else{
+      proximo_mensaje += c;
     }
   }
 }
 
-// Definimos una funcion para representar las figuras
-//Funcion para la representacion de bytes de datos para una matriz de 8x8
-void representar(byte *Datos,int retardo){
-  for (int i = 0; i < 8; i++)  {
-    lc.setColumn(0,i,Datos[7-i]);
+void slide_text(int ms_delay){
+  int col = 0;
+  int last_pos;
+  bool completo = false;
+  
+  cartel.clear();
+
+  while( completo == false ){
+    last_pos = printText(col, mensaje);
+    delay(ms_delay);
+    col++;
+    if(last_pos > (int)cartel.getColumnCount()){
+      completo = true;
+    }
+  }
+}
+
+int printText(int pos, const String text){
+  int w;
+  
+  for( int i = 0; i < text.length(); i++ ){
+    // imprimir letra
+
+    w = cartel.setChar( pos, text[i] );
+    // la proxima letra empieza donde termina esta
+    pos = pos - w; 
+    // Se deja una columna entre letras.
+    cartel.setColumn(pos, B00000000);
+    
+    pos = pos - 1;
+    
+    if( pos < 0 ){
+      break; 
+    }
   }
   
-  delay(retardo);
+  cartel.update();
+  return pos;
 }
